@@ -35,6 +35,6 @@ minetest.register_chatcommand("de", {
     privs = {privs=true},
     func = function(name, param)
         rhynia.f.poppyh()
-        shout(rhynia.f.calc_condition(3))
+        rhynia.u.sh(rhynia.f.nominate("rhynia_test_mod:faux_genus_six_underscores_1234"))
     end
 })

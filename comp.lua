@@ -168,15 +168,22 @@ end
 
 
 -- -- -- -- -- -- -- -- Plant
-rhynia.f.nominate = function(name) -- Returns a table containing genus, stage and stage-step if given the name of a node.
-    local data = {}
-    if(string.find(name,":"))then else error("Name "..name.." missing search pattern ':'!") end
-    local name = string.sub(name,string.find(name,":"),string.len(name))
-    data.genus = string.sub(name,string.find(name,":")+1,string.find(name, "_")-1)
-    data.stage = string.sub(name,string.find(name, "_")+1,string.len(name)-string.find(string.reverse(name), "_"))
-    data.step = string.sub(name,string.len(name))
-    return data
-end -- MUST REDO, VERY MUCH BAD
+rhynia.f.nominate = function(name) -- Returns a number from the very end of a string. Causes naming convention requirement ("modname:genus_int").
+    local function get_genus(name)
+        local n = name
+        n = string.sub(n,string.find(n,":")+1)
+        n = string.sub(n,1,string.find(n,"_")-1)
+        return n
+    end
+
+    local function get_state(name)
+    local name = name
+    for n in string.gmatch(name, "_")do
+    name = string.sub(name,string.find(name,"_")+1)
+    end return name
+    end
+    return {get_genus(name),get_state(name)}
+end
 
 rhynia.f.select = function(pos) -- Performs the above nomination query on a position.
     return rhynia.f.nominate(rhynia.u.gn(pos).name)
