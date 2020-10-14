@@ -1,4 +1,4 @@
--- luacheck: globals minetest rhynia shout
+-- luacheck: globals minetest rhynia
 
 local thismod = minetest.get_current_modname()
 local tm = thismod
@@ -7,7 +7,7 @@ local tm = thismod
 
 -- -- -- -- -- -- -- -- General
 
-rhynia.f.selectify = function(...)
+rhynia.u.selectify = function(...)
     local val = {}
     for n = 1, select("#",...) do
         val[n] = select(n,...)
@@ -15,10 +15,13 @@ rhynia.f.selectify = function(...)
     return val
 end
 
-rhynia.gn = function(pos)return minetest.get_node(pos)end
-rhynia.sn = function(pos,nam,p2)return minetest.set_node(pos, {name = nam, param2 = p2})end
-rhynia.rn = function(pos) return minetest.remove_node(pos) or true end
+rhynia.u.sh = function(thing)return minetest.chat_send_all(minetest.serialize(thing)) end
+rhynia.u.gn = function(pos)return minetest.get_node(pos) end
+rhynia.u.sn = function(pos,nam,p2)return minetest.set_node(pos, {name = nam, param2 = p2}) end
+rhynia.u.rn = function(pos) return minetest.remove_node(pos) or true end
 
+
+local function register_on_hooks()
 local acts = {"sprout","tick","grow","stagnate","die","health_change","fruit","propagate"}
 
 for n = 1, #acts do -- Register act wrappers.
@@ -27,7 +30,10 @@ rhynia.f[a] = function(pos, genus)
     return rhynia.genera[genus].acts[a] and rhynia.genera[genus].acts[a](pos,genus)
 end
 end
+end
+register_on_hooks()
 -- -- -- -- -- -- -- ---- -- -- -- -- -- -- --
+
 
 
 -- -- -- -- -- -- -- -- Wind
@@ -38,7 +44,6 @@ rhynia.f.ghibli = function()
 end
 
 rhynia.f.poppyh = function()
-    shout("POPPY")
     rhynia.wind[1],rhynia.wind[2] = rhynia.f.ghibli(),math.random(1,3)
 end
 -- -- -- -- -- -- -- ---- -- -- -- -- -- -- --
@@ -46,11 +51,11 @@ end
 -- -- -- -- -- -- -- -- Substrate
 
 rhynia.f.is_substrate = function(pos)
-    return minetest.get_item_group(rhynia.gn(pos).name, "rhynia_subs_soil")
+    return minetest.get_item_group(rhynia.u.gn(pos).name, "rhynia_subs_soil")
 end
 
 rhynia.f.is_substrate_alt = function(pos, genus)
-    return minetest.get_item_group(rhynia.gn(pos).name, "rhynia_subs_soil_"..genus)
+    return minetest.get_item_group(rhynia.u.gn(pos).name, "rhynia_subs_soil_"..genus)
 end
 
 rhynia.f.is_rooted = function(pos,genus)
@@ -66,12 +71,11 @@ rhynia.f.assign_soils_alt = function(genus)
         groups["rhynia_subs_soil_"..genus] = 1
         minetest.override_item(k, {groups = groups})
         rhynia.subs.values[k] = v or 1
-        --minetest.after(3, function() shout(rhynia.subs.values)end)
     end
 end
 end
 
-rhynia.geo_area = function(p,r,t) -- uses vector p and radius r to determine assimilation area for pos p, based on type
+rhynia.f.geo_area = function(p,r,t) -- uses vector p and radius r to determine assimilation area for pos p, based on type
     local t,a = t or false, {}
     a[1] = t and {x = p.x + r, y = p.y + r, z = p.z + r} or {x = p.x + r, y = p.y, z = p.z + r}
     a[2] = t and {x = p.x - r, y = p.y - r, z = p.z - r} or {x = p.x - r, y = p.y, z = p.z - r}
@@ -80,7 +84,7 @@ end
 
 rhynia.f.ass_check = function(pos, r, t, genus) -- Grabs soil data underneath pos, to a max radius of r, depending on the shape specifier t(bool)
     local upos = {x = pos.x, y = pos.y - (t and (r+1) or 1), z = pos.z}
-    local cals = rhynia.geo_area(upos,r,t)
+    local cals = rhynia.f.geo_area(upos,r,t)
 
     local function soilchk()
         local alt_soil_group = genus and "group:rhynia_subs_soil_"..genus
@@ -172,10 +176,10 @@ rhynia.f.nominate = function(name) -- Returns a table containing genus, stage an
     data.stage = string.sub(name,string.find(name, "_")+1,string.len(name)-string.find(string.reverse(name), "_"))
     data.step = string.sub(name,string.len(name))
     return data
-end
+end -- MUST REDO, VERY MUCH BAD
 
 rhynia.f.select = function(pos) -- Performs the above nomination query on a position.
-    return rhynia.f.nominate(rhynia.gn(pos).name)
+    return rhynia.f.nominate(rhynia.u.gn(pos).name)
 end
 
 rhynia.f.rnode = function(def) -- Registers a node for use in future plant defs. Still WIP. Currently only "plantlike" and "plantlike-rooted" definitions.
@@ -217,7 +221,7 @@ rhynia.f.register_emulsion = function(def) -- Registers a plant genus template w
         genus = def.genus, -- String: Name for looking up definition variables.
         health_max = def.health_max,
         root_dim = def.root_dim, -- Int: If used, number of nodes the plant can grow up.
-        substrates = def.substrates,
+        substrates = def.substrates, -- Table of tables: Input key-value pairs of nodenames(or groups) with value denoting additive substrate value.
         growth_interval = def.growth_interval, -- Int/Table: Either a table of numbers for the required base growth ticks to step/stage promotion, or a single int if all stages have uniform growth time.
         growth_factor = def.growth_factor, -- Table: Table of strings with keys denoting which nodes contribute to growth and values indicating magnitude of contribution.
         survival_factor = def.survival_factor, -- Table: Same as growth_factor, but for survival. Used to tally health of plant.
@@ -239,7 +243,7 @@ end
 
 -- Plant-Behaviour
 rhynia.f.grow_chk = function(pos) -- returns true if growth interval in node meta is >= genus standard for current growth level
-    local data = rhynia.f.nominate(rhynia.gn(pos).name)
+    local data = rhynia.f.nominate(rhynia.u.gn(pos).name)
     data.gl = minetest.get_meta(pos):get_int("rhynia_gl") -- gl = growth_level
     data.gi = minetest.get_meta(pos):get_int("rhynia_gi")
     data.nd = minetest.get_node(pos)
@@ -262,7 +266,7 @@ end
 
 rhynia.f.grow = function(pos) -- Rebuilds plant using next genus structure table
 
-    local data = rhynia.f.nominate(rhynia.gn(pos).name)
+    local data = rhynia.f.nominate(rhynia.u.gn(pos).name)
     data.gl = minetest.get_meta(pos):get_int("rhynia_gl") -- gl = growth_level
     data.nd = minetest.get_node(pos)
 
@@ -276,7 +280,7 @@ rhynia.f.grow = function(pos) -- Rebuilds plant using next genus structure table
     local function plantstruct(pos,v) -- Constructs plant layer-by-layer
 
         local function airchk(pos)
-            return rhynia.gn(pos).name == "air" or minetest.get_item_group(data.nd.name,"rhynia_plant") > 0
+            return rhynia.u.gn(pos).name == "air" or minetest.get_item_group(data.nd.name,"rhynia_plant") > 0
         end
 
         local function build(pos)
@@ -284,7 +288,7 @@ rhynia.f.grow = function(pos) -- Rebuilds plant using next genus structure table
             local p, s = pos and {x = pos.x, y = pos.y, z = pos.z},rhynia.genera[data.genus].structure[v]
 
             for n = 1, #s do
-                if(p and s[n] and airchk(p)) then local m = minetest.get_meta(p); local mm = m:get_int("rhynia_gi") ; rhynia.sn(p,s[n],p2) ; m:set_int("rhynia_gi",(mm-rhynia.genera[data.genus].growth_interval))  else end
+                if(p and s[n] and airchk(p)) then local m = minetest.get_meta(p); local mm = m:get_int("rhynia_gi") ; rhynia.u.sn(p,s[n],p2) ; m:set_int("rhynia_gi",(mm-rhynia.genera[data.genus].growth_interval))  else end
                 p.y = p.y + 1
             end
         end
@@ -292,10 +296,10 @@ rhynia.f.grow = function(pos) -- Rebuilds plant using next genus structure table
         rhynia.f.on_grow(pos,data.genus) -- HOOK:on_grow
     end
     plantstruct(pos, despues(data.gl))
-end
+end -- ~~ Refactor tag
 
 rhynia.f.propagate = function(pos, dir, mag)
-    local pos, genus = {x = pos.x, y = pos.y, z = pos.z}, rhynia.f.nominate(rhynia.gn(pos).name).genus
+    local pos, genus = {x = pos.x, y = pos.y, z = pos.z}, rhynia.f.nominate(rhynia.u.gn(pos).name).genus
     local sdr,dir,mag = rhynia.genera[genus].spore_dis_rad, dir or rhynia.wind[1], mag or rhynia.wind[2]
     local function proj(pos)
         local dir,mag,pos = {x = dir.x, y = 0, z = dir.z}, mag*math.random(1,8),{x = pos.x, y = pos.y, z = pos.z}
@@ -319,7 +323,7 @@ rhynia.f.propagate = function(pos, dir, mag)
         local pos = {x = pos.x, y = pos.y, z = pos.z}
         local pos2 = vector.add(pos,{x = math.random(-sdr,sdr), y = -1, z = math.random(-sdr,sdr)})
         local function ifair(pos)
-            return rhynia.gn(pos).name == "air"
+            return rhynia.u.gn(pos).name == "air"
         end
         
         return pos and ifair({x = pos2.x, y = pos2.y + 1, z = pos2.z}) and rhynia.f.is_substrate(pos2) > 0 and minetest.set_node({x = pos2.x, y = pos2.y + 1, z = pos2.z}, {name = rhynia.genera[genus].structure[1][1] or rhynia.genera[genus].structure[1]})
@@ -327,7 +331,8 @@ rhynia.f.propagate = function(pos, dir, mag)
     sow(toground(proj(pos)))
     rhynia.f.on_propagate(pos,genus)
     
-end
+end 
+-- ~~ Refactor tag
 
 rhynia.f.set_health = function(pos, val) -- Sets "health" metadata value at pos.
     return minetest.get_meta(pos):set_int("rhynia_h",val)
@@ -348,11 +353,11 @@ rhynia.f.is_live = function(pos) -- Returns boolean indicating.
 end
 
 rhynia.f.kill_if_health = function(pos, val)
-    return minetest.get_meta(pos):get_int("rhynia_h") < val and rhynia.rn(pos)
+    return minetest.get_meta(pos):get_int("rhynia_h") < val and rhynia.u.rn(pos)
 end
 
 rhynia.f.MA13_456 = function(pos,prob) 
-    return math.random(1000) < prob and rhynia.rn(pos)
+    return math.random(1000) < prob and rhynia.u.rn(pos)
 end
 
 rhynia.f.check_vitals = function(pos, genus)

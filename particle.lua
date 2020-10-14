@@ -1,4 +1,4 @@
--- luacheck: globals minetest rhynia shout
+-- luacheck: globals minetest rhynia
 
 rhynia.f.pollen = function(pos,dir,mag,tex,h)
     local tex = tex

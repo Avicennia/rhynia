@@ -1,4 +1,4 @@
--- luacheck: globals minetest rhynia shout
+-- luacheck: globals minetest rhynia
 
 rhynia.subs = {}
 rhynia.subs.soils,rhynia.subs.waters,rhynia.subs.values = {},{},{}
@@ -42,14 +42,11 @@ register_substrates()
 
 local rand = function(n,v)
     local num = math.random(n)
-    shout(num.."||"..n.."|||"..v)
-    shout(num > v)
     if(num > v)then
         rhynia.f.poppyh()
     end
 end
 
 nodecore.interval(20, function() rand(1000,math.random(965)) end)
-minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing) local node = minetest.get_node({x = pos.x, y = pos.y, z = pos.z})shout(minetest.registered_nodes[node.name].groups)end)
 
 

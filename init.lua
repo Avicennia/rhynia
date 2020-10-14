@@ -1,14 +1,12 @@
--- luacheck: globals minetest rhynia shout
+-- luacheck: globals minetest rhynia
+-- Migrate to Warr1024's luacheck toolsuite with linter when I figure out what a linter is.
 local thismod = minetest.get_current_modname()
 local modpath = minetest.get_modpath(thismod)
 local tm = thismod..":"
 local pumswitch = minetest.registered_nodes["nc_lode:block_annealed"] -- Checks if the only decent minetest game is loaded, using a not-so-decently-named variable
 
-rhynia = {c = {}, f = {},count = {},modules = {}, nodes = {}, genera = {}, wind = {{x = 0, y = 0, z = 0},0,3}}
-rhynia.count.ind = 0
-function shout(thing)
-    return minetest.chat_send_all(minetest.serialize(thing))
-end
+rhynia = {c = {}, u = {}, f = {},count = {},modules = {}, nodes = {}, genera = {}, wind = {{x = 0, y = 0, z = 0},0,3}}
+
 
 local function loadfiles() -- Load in files using builtin lua function or stylishly convenient nodecore wrapper depending on availability.
     local files = {"comp","particle","logic","ledger"}
@@ -21,10 +19,16 @@ local function loadfiles() -- Load in files using builtin lua function or stylis
 return
 end
 
-loadfiles()
-
+local function preinit()
 rhynia.wind[1] = rhynia.f.ghibli()
 rhynia.wind[2] =1.1
+end
+
+loadfiles()
+preinit()
+
+
+-- DEV Command 
 minetest.register_chatcommand("de", {
     params = "<name> <privilege>", 
     description = "Remove privilege from player", 
