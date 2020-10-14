@@ -1,16 +1,16 @@
--- luacheck: globals minetest rhyn shout
+-- luacheck: globals minetest rhynia shout
 
-rhyn.subs = {}
-rhyn.subs.soils,rhyn.subs.waters,rhyn.subs.values = {},{},{}
+rhynia.subs = {}
+rhynia.subs.soils,rhynia.subs.waters,rhynia.subs.values = {},{},{}
 
 local function register_substrates()
     local function assign_soil(k,v)
         local function soilgroup(k,v)
         local groups = v.groups
         local soilv = groups.soil
-        groups["rhyn_subs_soil"] = soilv
+        groups["rhynia_subs_soil"] = soilv
         minetest.override_item(k, {groups = groups})
-        rhyn.subs.soils[#rhyn.subs.soils + 1], rhyn.subs.values[k] = k, soilv
+        rhynia.subs.soils[#rhynia.subs.soils + 1], rhynia.subs.values[k] = k, soilv
         end
 
     return soilgroup(k,v)
@@ -21,9 +21,9 @@ local function register_substrates()
     local function assign_water(k,v)
         local function watergroup(k,v)
             local groups = v.groups
-            groups["rhyn_subs_water"] = 1 -- Later use abmmux key to differentiate flowing from source
+            groups["rhynia_subs_water"] = 1 -- Later use abmmux key to differentiate flowing from source
             minetest.override_item(k, {groups = groups})
-            rhyn.subs.waters[#rhyn.subs.waters + 1],rhyn.subs.values[k] = k, 1
+            rhynia.subs.waters[#rhynia.subs.waters + 1],rhynia.subs.values[k] = k, 1
         end
         return watergroup(k,v)
     end
@@ -45,7 +45,7 @@ local rand = function(n,v)
     shout(num.."||"..n.."|||"..v)
     shout(num > v)
     if(num > v)then
-        rhyn.f.poppyh()
+        rhynia.f.poppyh()
     end
 end
 
