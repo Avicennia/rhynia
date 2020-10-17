@@ -1,8 +1,8 @@
--- luacheck: globals minetest rhyn shout
+-- luacheck: globals minetest rhynia
 
-rhyn.f.pollen = function(pos,dir,mag,tex,h)
+rhynia.f.pollen = function(pos,dir,mag,tex,h)
     local tex = tex
-    local dir,mag,bas = dir or rhyn.wind[1], mag or rhyn.wind[2], {x = 1, y = 1, z = 1}
+    local dir,mag,bas = dir or rhynia.wind[1], mag or rhynia.wind[2], {x = 1, y = 1, z = 1}
 minetest.add_particlespawner({
     amount = 10,
     time = 1,
