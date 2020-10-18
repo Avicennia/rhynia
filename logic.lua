@@ -5,7 +5,7 @@ local tm = thismod
 
 nodecore.register_limited_abm({
     label = "rhynia plant tick",
-    nodenames = {"group:rhynia_plant"},
+    nodenames = {"group:rhynia_plant_active"},
     interval = 0.1,
     chance = 1,
     ignore_stasis = false,

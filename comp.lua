@@ -17,9 +17,11 @@ end
 
 rhynia.u.sh = function(thing)return minetest.chat_send_all(minetest.serialize(thing)) end
 rhynia.u.gn = function(pos)return minetest.get_node(pos) end
-rhynia.u.sn = function(pos,nam,p2)return minetest.set_node(pos, {name = nam, param2 = p2}) end
+rhynia.u.sn = function(pos,nam,p2)return minetest.set_node(pos, {name = nam, param2 = p2 or 1}) end
+rhynia.u.swn = function(pos,nam,p2)return minetest.swap_node(pos, {name = nam, param2 = p2 or 1}) end
+rhynia.u.sna = function(p,nam,p2) return rhynia.u.sn({x = p.x, y = p.y+1, z = p.z},nam,p2) end
 rhynia.u.rn = function(pos) return minetest.remove_node(pos) or true end
-
+rhynia.u.tc = function(t) local t2 = {} for k,v in pairs(t) do t2[k] = v end return t2 end
 
 local function register_on_hooks()
 local acts = {"sprout","tick","grow","stagnate","die","health_change","fruit","propagate"}
@@ -67,9 +69,9 @@ rhynia.f.assign_soils_alt = function(genus)
     local subs = rhynia.genera[genus].substrates
     if(subs)then
     for k,v in pairs(subs) do
-        local groups = minetest.registered_nodes[k].groups
-        groups["rhynia_subs_soil_"..genus] = 1
-        minetest.override_item(k, {groups = groups})
+        local grps = minetest.registered_nodes[k].groups
+        grps["rhynia_subs_soil_"..genus] = 1
+        minetest.override_item(k, {groups = grps})
         rhynia.subs.values[k] = v or 1
     end
 end
@@ -199,6 +201,7 @@ rhynia.f.rnode = function(def) -- Registers a node for use in future plant defs.
         end
     end
     inject_traits()
+    gps["rhynia_plant_active"] = 1
     minetest.register_node(nme, {
         description = def.description,
         drawtype = def.drawtype,
@@ -258,6 +261,7 @@ rhynia.f.grow_chk = function(pos) -- returns true if growth interval in node met
     return data.gi and data.gl and data.gi >= data.nx
 end
 
+
 rhynia.f.growth_tick = function(pos, genus)
     local genus = genus or rhynia.f.nominate(minetest.get_node(pos).name).genus
     local mixed_growth = rhynia.genera[genus].traits["growth_opt"]
@@ -267,8 +271,9 @@ rhynia.f.growth_tick = function(pos, genus)
         local m = minetest.get_meta(pos)
         local mgi = m:get_int("rhynia_gi")
         m:set_int("rhynia_gi", mgi+gv)
+        gv = m:get_int("gl") -- using gv for gl after use.
     end
-    return rhynia.f.grow_chk(pos) and rhynia.f.grow(pos) or uptick(pos)
+    return rhynia.f.grow_chk(pos) and rhynia.f.grow(pos, genus, gv) or uptick(pos)
 end
 
 rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus structure table
@@ -276,15 +281,35 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
     local data = genus and stage and {genus = genus, stage = stage} or rhynia.f.select(pos)
     data.gl = minetest.get_meta(pos):get_int("rhynia_gl") -- gl = growth_level
     data.nd = minetest.get_node(pos)
+    data.stmax = #rhynia.genera[data.genus].structure
+    local function is_perennial()
+        local s = rhynia.genera[data.genus].traits.brito
+        s = s and data.gl >= #rhynia.genera[data.genus].structure
+        return s
+    end
+
+    local function is_annual()
+        local s = rhynia.genera[data.genus].traits.annual
+        s = s and data.gl >= #rhynia.genera[data.genus].structure
+        rhynia.u.sh(s)
+        return s and rhynia.f.senescence_clear(pos,data.genus,data.gl)
+    end
 
     local function despues(val) -- val must always be an integer to reference a value in genus[structure] either directly or proximally via growth_order when present.
         local v,g = val, data.genus
-        local tab = rhynia.genera[g].growth_order or rhynia.genera[g].structure
+        local tab = rhynia.genera[g].structure
         tab = #tab
         v = v and v + 1 <= tab and v + 1 or 1
         return v
     end
-
+    
+    local function ample_space(pos)
+        local pos = rhynia.u.tc(pos)
+        local hei,hei2 = #rhynia.genera[data.genus].structure[data.gl],#rhynia.genera[data.genus].structure[despues(data.gl)]
+        
+        return (data.gl ~= data.stmax) and minetest.line_of_sight({x = pos.x, y = pos.y + hei, z = pos.z},{x = pos.x, y = pos.y + hei2 - 1, z = pos.z})== true
+    end
+    ample_space(pos)
     local function plantstruct(pos,v) -- Constructs plant layer-by-layer upwards.
 
         local function airchk(pos)
@@ -296,15 +321,36 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
             local p, s = pos and {x = pos.x, y = pos.y, z = pos.z},rhynia.genera[data.genus].structure[v]
 
             for n = 1, #s do
-                if(p and s[n] and airchk(p)) then local m = minetest.get_meta(p); local mm = m:get_int("rhynia_gi") ; rhynia.u.sn(p,s[n],p2) ; m:set_int("rhynia_gi",(mm-rhynia.genera[data.genus].growth_interval))  else end
+                if(p and s[n] and airchk(p)) then
+                    local m = minetest.get_meta(p)
+                    local mm = m:get_int("rhynia_gi")
+                    rhynia.u.swn(p,s[n],p2)
+                    m:set_int("rhynia_gi",(0))
+                    local newgl = data.gl + 1 < data.stmax and data.gl + 1 or data.stmax
+                    m:set_int("rhynia_gl",newgl)
+                else end
                 p.y = p.y + 1
             end
         end
         build(pos)
         rhynia.f.on_grow(pos,data.genus) -- HOOK:on_grow
     end
-    return rhynia.genera[data.genus] and plantstruct(pos, despues(data.gl))
+    return (not is_annual()) and (not is_perennial()) and ample_space(pos) and rhynia.genera[data.genus] and plantstruct(pos, despues(data.gl))
 end -- ~~ Refactor tag
+
+rhynia.f.senescence_clear = function(pos,genus,stage)
+    local hei = #rhynia.genera[genus].structure[stage]
+    local function airstruct()
+        local s,p = 0,{x = pos.x, z = pos.z, y = pos.y}
+        for n = 1, hei do
+            rhynia.u.sn(p,"air")
+            p.y = p.y + 1
+            s = s + 1
+        end
+        return s == hei
+    end
+    return airstruct()
+end
 
 rhynia.f.propagate = function(pos, genus, dir, mag)
     local pos, genus = {x = pos.x, y = pos.y, z = pos.z}, genus or rhynia.f.select(pos).genus
