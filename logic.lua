@@ -1,7 +1,4 @@
--- luacheck: globals minetest rhynia
-
-local thismod = minetest.get_current_modname()
-local tm = thismod
+-- luacheck: globals minetest rhynia nodecore
 
 nodecore.register_limited_abm({
     label = "rhynia plant tick",
@@ -11,14 +8,10 @@ nodecore.register_limited_abm({
     ignore_stasis = false,
     action = function(pos, node)
         local dat = node.name and rhynia.f.nominate(node.name) -- Identity check
-        if(dat)then 
-            -- Check vitals
-            -- Check if plant needeth to die.
-            -- If live then, but not using if statement
+        if(dat)then
         rhynia.genera[dat.genus].acts.on_tick(pos,dat.genus) -- Do tick behaviour
         rhynia.f.on_propagate(pos,dat.genus)
-        else end
+        end
         return
-        
     end
 })
