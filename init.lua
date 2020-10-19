@@ -6,7 +6,7 @@ local pumswitch = minetest.registered_nodes["nc_lode:block_annealed"]
 -- Checks if the only decent minetest game is loaded, using a not-so-decently-named variable
 
 rhynia = {c = {}, u = {}, f = {},count = {},modules = {}, nodes = {}, genera = {}, wind = {{x = 0, y = 0, z = 0},0,3}}
-
+rhynia.nc = pumswitch
 local function loadfiles()
     -- Load in files using builtin lua function or stylishly convenient nodecore wrapper depending on availability.
     local files = {"util","comp","particle","logic","ledger","health","substrate","growth","condition","register","propagation"}

@@ -30,3 +30,20 @@ end
 rhynia.f.check_vitals = function(pos, genus)
     return not rhynia.f.is_live(pos) and rhynia.genera[genus].acts.on_wither(pos, genus) and rhynia.f.kill_if_health(pos, 1)
 end
+
+rhynia.f.spot_check = function(pos, name, tf) -- Searches for node [name] 1 node around pos, returns integer of # found. If BOOL "tf" is true, returns table of all values of group "name". (some kind of "verbose" search)
+    
+    local area = rhynia.nc and nodecore.find_nodes_around(pos, name) or {a = {x = pos.x + 1, y = pos.y + 1, z = pos.z + 1}, b = {x = pos.x - 1, y = pos.y - 1, z = pos.z - 1}}
+    area = minetest.find_nodes_in_area(area.a,area.b,name)
+    local function tags_on_erryting()
+        if(not tf)then return end
+        local v = 0
+        for n = 1, #area do
+            local name = string.gsub(name, "group:","")
+            v = v + minetest.get_item_group(minetest.get_node(area[n]).name,name)
+        end
+        return v
+    end
+    return tags_on_erryting() or #area
+end
+

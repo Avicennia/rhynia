@@ -33,14 +33,13 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
     data.stmax = #rhynia.genera[data.genus].structure
     local function is_perennial()
         local s = rhynia.genera[data.genus].traits.brito
-        s = s and data.gl >= #rhynia.genera[data.genus].structure
+        s = s and data.gl >= data.stmax
         return s
     end
 
     local function is_annual()
         local s = rhynia.genera[data.genus].traits.annual
-        s = s and data.gl >= #rhynia.genera[data.genus].structure
-        --rhynia.u.sh(s)
+        s = s and data.gl >= data.stmax
         return s and rhynia.f.senescence_clear(pos,data.genus,data.gl)
     end
 
@@ -55,7 +54,7 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
     local function ample_space(pos)
         local pos = rhynia.u.tc(pos)
         local hei,hei2 = #rhynia.genera[data.genus].structure[data.gl],#rhynia.genera[data.genus].structure[despues(data.gl)]
-        return (data.gl ~= data.stmax) and minetest.line_of_sight({x = pos.x, y = pos.y + hei, z = pos.z},{x = pos.x, y = pos.y + hei2 - 1, z = pos.z})== true
+        return hei2 > 1 and (data.gl ~= data.stmax) and minetest.line_of_sight({x = pos.x, y = pos.y + hei, z = pos.z},{x = pos.x, y = pos.y + hei2 - 1, z = pos.z})== true or hei2 == 1 and true
     end
     ample_space(pos)
     local function plantstruct(pos,v) -- Constructs plant layer-by-layer upwards.
@@ -82,10 +81,10 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
         build(pos)
         rhynia.f.on_grow(pos,data.genus) -- HOOK:on_grow
     end
-    return (not is_annual()) and (not is_perennial()) and ample_space(pos) and rhynia.genera[data.genus] and plantstruct(pos, despues(data.gl))
-end -- ~~ Refactor tag
+    return (not is_annual()) and (not is_perennial()) and ample_space(pos) and plantstruct(pos, despues(data.gl))
+end
 
-rhynia.f.senescence_clear = function(pos,genus,stage)
+rhynia.f.senescence_clear = function(pos,genus,stage) -- Deletes plant at given stage
     local hei = #rhynia.genera[genus].structure[stage]
     local function airstruct()
         local s,p = 0,{x = pos.x, z = pos.z, y = pos.y}
