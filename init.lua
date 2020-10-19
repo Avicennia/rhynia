@@ -9,7 +9,7 @@ rhynia = {c = {}, u = {}, f = {},count = {},modules = {}, nodes = {}, genera = {
 
 local function loadfiles()
     -- Load in files using builtin lua function or stylishly convenient nodecore wrapper depending on availability.
-    local files = {"comp","particle","logic","ledger"}
+    local files = {"util","comp","particle","logic","ledger","health","substrate","growth","condition","register","propagation"}
     local function loadup(a, tf)
         return tf and include(a..".lua") or dofile(modpath.."/"..a..".lua")
     end
@@ -27,14 +27,3 @@ end
 loadfiles()
 preinit()
 
-
--- DEV Command
-minetest.register_chatcommand("de", {
-    params = "<name> <privilege>",
-    description = "Remove privilege from player",
-    privs = {privs=true},
-    func = function()
-        rhynia.f.poppyh()
-        rhynia.u.sh(rhynia.f.nominate("rhynia_test_mod:faux_genus_six_underscores_1234"))
-    end
-})
