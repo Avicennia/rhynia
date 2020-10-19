@@ -15,13 +15,14 @@ end
 
 rhynia.f.calc_condition = function(r) -- returns condition value given flat radius r
     --local switch = genus and rhynia.genera[genus].traits["pt2condition"]
+    r = r or 1
     local maxim = {}
     maxim.lowest = ((r*2)+1)^2
     maxim.highest = ((4*((r*2)+1)^2))*(1+math.log10(3))
 
     local quartiles = {"h","m","l"}
     for n = 1, #quartiles do
-        maxim[quartiles[n]]= maxim.highest - (41.495*(n^(1*(1+n/10))))
+        maxim[quartiles[n]]= maxim.highest - (n/math.pi*(maxim.highest/10)*(n*(1+(n/math.sqrt(maxim.highest)))))
     end
     return maxim
 end
