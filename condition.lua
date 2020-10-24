@@ -13,7 +13,7 @@ rhynia.f.condition_tick = function(pos, genus, tf)
     return v
 end
 
-rhynia.f.calc_condition_limits = function(r,min,max)
+rhynia.f.calc_condition_limits = function(r,min,max, genus)
 --local switch = genus and rhynia.genera[genus].traits["pt2condition"]
     min,max = min or 1, max or 4
     local maxim = {}
@@ -25,17 +25,25 @@ rhynia.f.calc_condition_limits = function(r,min,max)
         local n = 5 - s
         maxim[s]= math.floor(maxim[5] - (n/math.pi*(maxim[5]/10)*(n*(1+(n/math.sqrt(maxim[5]))))))
     end
+
+    local function limit_adjust() -- adjusts limit values by multiplying by growth interval (necessary to time-expand the limits as they only represent a single snapshot of nutrition up to this point).
+        local gi_factor = rhynia.genera[genus].growth_interval
+        gi_factor = type(gi_factor) == "number" and gi_factor or gi_factor[gl]
+        for s = 1, 5 do
+        maxim[s] = maxim[s] * gi_factor
+        end
+    end
+    limit_adjust()
     return maxim
 end
 
-rhynia.f.calc_condition = function(ci,gl,p2,r) -- returns condition value given flat radius r
-    local lims = rhynia.f.calc_condition_limits(r or 1)
-    rhynia.u.sh(lims)
+rhynia.f.calc_condition = function(ci,gl,p2,r,genus) -- returns condition value given flat radius r
+    local lims = rhynia.f.calc_condition_limits(r or 1,_,_,genus)
     local p2 = p2 > 0 and p2 or 1
     local cs = lims[p2]
     local v = ci-(cs*(gl-2 >-1 and gl-2 or 0)) -- where ci = condition index, gl = growth level, cs = condition standard (the value at the level for that condition as calculated)
     local function incr_chk(a) -- Logical comparison of current ci with standard condition values, checks value incrementally and stops when ci isnt higher than the next number
-        local ind = 1
+        local ind = 0
         local function igi(a,b) return a >= b and ind+1 or ind end
         for s = 1, 3 do
             local ind_s = ind
@@ -43,7 +51,6 @@ rhynia.f.calc_condition = function(ci,gl,p2,r) -- returns condition value given 
             if(ind_s == ind)then return ind end
         end
         ind = ind > 4 and 4 or ind
-        --rhynia.u.sh(ind)
         return ind
     end
     return incr_chk(v)
