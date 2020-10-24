@@ -13,18 +13,40 @@ rhynia.f.condition_tick = function(pos, genus, tf)
     return v
 end
 
-rhynia.f.calc_condition = function(r) -- returns condition value given flat radius r
-    --local switch = genus and rhynia.genera[genus].traits["pt2condition"]
-    r = r or 1
+rhynia.f.calc_condition_limits = function(r,min,max)
+--local switch = genus and rhynia.genera[genus].traits["pt2condition"]
+    min,max = min or 1, max or 4
     local maxim = {}
-    maxim.lowest = ((r*2)+1)^2
-    maxim.highest = ((4*((r*2)+1)^2))*(1+math.log10(3))
+    maxim[1] = math.floor((((r*min)*2)+1)^2) -- previously maxim.lowest
+    maxim[5] = math.floor(((max*((r*2)+1)^2))*(1+math.log10(3))) -- Replace 4 here with the value of the highest value substrate, here maxim[5] was maxim.highest
 
-    local quartiles = {"h","m","l"}
-    for n = 1, #quartiles do
-        maxim[quartiles[n]]= maxim.highest - (n/math.pi*(maxim.highest/10)*(n*(1+(n/math.sqrt(maxim.highest)))))
+    
+    for s = 4, 2, -1  do
+        local n = 5 - s
+        maxim[s]= math.floor(maxim[5] - (n/math.pi*(maxim[5]/10)*(n*(1+(n/math.sqrt(maxim[5]))))))
     end
     return maxim
+end
+
+rhynia.f.calc_condition = function(ci,gl,p2,r) -- returns condition value given flat radius r
+    local lims = rhynia.f.calc_condition_limits(r or 1)
+    rhynia.u.sh(lims)
+    local p2 = p2 > 0 and p2 or 1
+    local cs = lims[p2]
+    local v = ci-(cs*(gl-2 >-1 and gl-2 or 0)) -- where ci = condition index, gl = growth level, cs = condition standard (the value at the level for that condition as calculated)
+    local function incr_chk(a) -- Logical comparison of current ci with standard condition values, checks value incrementally and stops when ci isnt higher than the next number
+        local ind = 1
+        local function igi(a,b) return a >= b and ind+1 or ind end
+        for s = 1, 3 do
+            local ind_s = ind
+            ind = igi(a,lims[s])
+            if(ind_s == ind)then return ind end
+        end
+        ind = ind > 4 and 4 or ind
+        --rhynia.u.sh(ind)
+        return ind
+    end
+    return incr_chk(v)
 end
 
 rhynia.f.average_light_spot = function(pos)
