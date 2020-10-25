@@ -65,7 +65,7 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
 
         local function build(pos)
             local m = minetest.get_meta(pos)
-            local gl,ci,p2 = m:get_int("rhynnia_gl"),m:get_int("rhynia_ci"),data.nd.param2
+            local gl,ci,p2 = m:get_int("rhynia_gl"),m:get_int("rhynia_ci"),data.nd.param2
             local p2 = rhynia.f.calc_condition(ci,gl,p2,_,genus)
             local p, s = pos and {x = pos.x, y = pos.y, z = pos.z},rhynia.genera[data.genus].structure[v]
 
@@ -73,7 +73,7 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
                 if(p and s[n] and airchk(p)) then
                     local m = minetest.get_meta(p)
                     rhynia.u.swn(p,s[n],p2)
-                    m:set_int("rhynia_gi",(0))
+                    m:set_int("rhynia_gi",0)
                     local newgl = data.gl + 1 < data.stmax and data.gl + 1 or data.stmax
                     m:set_int("rhynia_gl",newgl)
                 end

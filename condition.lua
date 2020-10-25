@@ -42,7 +42,7 @@ rhynia.f.calc_condition = function(ci,gl,p2,r,genus) -- returns condition value 
     
     local p2 = p2 > 0 and p2 or 1
     local cs = lims[p2]
-    local v = ci-(cs*(gl-2 >-1 and gl-2 or 0)) -- where ci = condition index, gl = growth level, cs = condition standard (the value at the level for that condition as calculated)
+    local v = (ci)-(cs*(gl-2 >0 and gl or 0)) -- where ci = condition index, gl = growth level, cs = condition standard (the value at the level for that condition as calculated)
     local function incr_chk(a) -- Logical comparison of current ci with standard condition values, checks value incrementally and stops when ci isnt higher than the next number
         -- WIP: undo unnecessary function definition ~~
         local ind = 0
@@ -50,7 +50,7 @@ rhynia.f.calc_condition = function(ci,gl,p2,r,genus) -- returns condition value 
         for s = 1, 4 do
             local ind_s = ind
             ind = igi(a,lims[s])
-            if(ind_s == ind)then return ind end
+            if(ind_s == ind)then return ind>=p2 and ind or p2-1 end
         end
         ind = ind > 4 and 4 or ind
         return ind
@@ -71,3 +71,6 @@ rhynia.f.average_light_spot = function(pos) -- WIP: undo unnecessary function de
     return area and area[1] and lux_iterate()
 end
 
+rhynia.f.reset_condition = function(pos)
+    return minetest.get_meta(pos):set_int("rhynia_ci",0)
+end
