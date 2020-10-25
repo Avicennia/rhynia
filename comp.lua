@@ -3,12 +3,13 @@
 -- -- -- -- -- -- -- -- General
 
 local function register_on_hooks()
-    local acts = {"sprout","tick","grow","stagnate","die","health_change","fruit","propagate"}
+    local acts = {"sprout","tick","grow","stagnate","wither","health_change","fruit","propagate"}
 
     for n = 1, #acts do -- Register act wrappers.
         local a = "on_"..acts[n]
         rhynia.f[a] = function(pos, genus)
-            return rhynia.genera[genus].acts[a] and rhynia.genera[genus].acts[a](pos,genus)
+            if(rhynia.genera[genus].acts[a]) then rhynia.genera[genus].acts[a](pos,genus) return true end
+            return false
         end
     end
 end

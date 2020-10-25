@@ -43,7 +43,7 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
         return s and rhynia.f.senescence_clear(pos,data.genus,data.gl)
     end
 
-    local function despues(val)
+    local function despues(val) -- WIP: Definitely in need to a Refactor ~~
         -- val must always be an integer to reference a value in genus[structure] either directly or proximally via growth_order when present.
         local v,g = val, data.genus
         local tab = rhynia.genera[g].structure
@@ -64,7 +64,9 @@ rhynia.f.grow = function(pos, genus, stage) -- Rebuilds plant using next genus s
         end
 
         local function build(pos)
-            local p2 = math.random(4)--data.nd.param2 -- ToDo: Add support for multiple param2s
+            local m = minetest.get_meta(pos)
+            local gl,ci,p2 = m:get_int("rhynnia_gl"),m:get_int("rhynia_ci"),data.nd.param2
+            local p2 = rhynia.f.calc_condition(ci,gl,p2,_,genus)
             local p, s = pos and {x = pos.x, y = pos.y, z = pos.z},rhynia.genera[data.genus].structure[v]
 
             for n = 1, #s do

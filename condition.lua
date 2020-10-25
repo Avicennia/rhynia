@@ -13,12 +13,12 @@ rhynia.f.condition_tick = function(pos, genus, tf)
     return v
 end
 
-rhynia.f.calc_condition_limits = function(r,min,max,genus,gl)
+rhynia.f.calc_condition_limits = function(r,min,max,genus,gl) -- WIP: undo unnecessary function definition ~~
 --local switch = genus and rhynia.genera[genus].traits["pt2condition"]
     min,max = min or 1, max or 4
     local maxim = {}
     maxim[1] = math.floor((((r*min)*2)+1)^2) -- previously maxim.lowest
-    maxim[5] = math.floor(((max*((r*2)+1)^2))*(1+math.log10(3))) -- Replace 4 here with the value of the highest value substrate, here maxim[5] was maxim.highest
+    maxim[5] = math.floor(((max*((r*2)+1)^2))*(1+math.log10(1.7))) -- Replace 4 here with the value of the highest value substrate, here maxim[5] was maxim.highest
 
     
     for s = 4, 2, -1  do
@@ -27,7 +27,7 @@ rhynia.f.calc_condition_limits = function(r,min,max,genus,gl)
     end
     local function limit_adjust() -- adjusts limit values by multiplying by growth interval (necessary to time-expand the limits as they only represent a single snapshot of nutrition up to this point).
         local gi_factor = rhynia.genera[genus].growth_interval
-        local opt_factor = 1
+        local opt_factor = rhynia.genera[genus].traits.growth_opt and 0.25 or 1
         gi_factor = type(gi_factor) == "number" and gi_factor or gi_factor[gl]
         for s = 1, 5 do
         maxim[s] = maxim[s] * (gi_factor/opt_factor)
@@ -38,12 +38,13 @@ rhynia.f.calc_condition_limits = function(r,min,max,genus,gl)
 end
 
 rhynia.f.calc_condition = function(ci,gl,p2,r,genus) -- returns condition value given flat radius r
-    local lims = rhynia.f.calc_condition_limits(r or 1,_,_,gl)
+    local lims = rhynia.f.calc_condition_limits(r or 1,_,_,genus,gl)
     
     local p2 = p2 > 0 and p2 or 1
     local cs = lims[p2]
     local v = ci-(cs*(gl-2 >-1 and gl-2 or 0)) -- where ci = condition index, gl = growth level, cs = condition standard (the value at the level for that condition as calculated)
     local function incr_chk(a) -- Logical comparison of current ci with standard condition values, checks value incrementally and stops when ci isnt higher than the next number
+        -- WIP: undo unnecessary function definition ~~
         local ind = 0
         local function igi(a,b) return a >= b and ind+1 or ind end
         for s = 1, 4 do
@@ -57,7 +58,7 @@ rhynia.f.calc_condition = function(ci,gl,p2,r,genus) -- returns condition value 
     return incr_chk(v)
 end
 
-rhynia.f.average_light_spot = function(pos)
+rhynia.f.average_light_spot = function(pos) -- WIP: undo unnecessary function definition ~~
     local area = {a = {x = pos.x + 1, y = pos.y + 1, z = pos.z + 1}, b = {x = pos.x - 1, y = pos.y - 1, z = pos.z - 1}}
     area = minetest.find_nodes_in_area(area.a,area.b,"air")
     local function lux_iterate()

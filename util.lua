@@ -29,7 +29,7 @@ end
 -- -- -- -- -- -- -- ---- -- -- -- -- -- -- --
 
 -- -- -- -- -- -- -- -- Plant
-rhynia.f.nominate = function(name)
+rhynia.f.nominate = function(name) -- WIP: internal local functions unnecessary if only used once, fix. ~~
     -- Returns a table containing string-genus[1] and int-state[2] from the very end of a string. Causes naming convention requirement ("modname:genus_int").
     local function get_genus(name)
         local n = name
@@ -49,4 +49,8 @@ end
 
 rhynia.f.select = function(pos) -- Performs the above nomination query on a position.
     return rhynia.f.nominate(rhynia.u.gn(pos).name)
+end
+
+rhynia.u.table_or_int_gi = function(genus) 
+return type(rhynia.genera[genus].growth_interval) == "number"
 end

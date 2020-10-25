@@ -28,7 +28,10 @@ rhynia.f.MA13_456 = function(pos,prob)
 end
 
 rhynia.f.check_vitals = function(pos, genus)
-    return not rhynia.f.is_live(pos) and rhynia.genera[genus].acts.on_wither(pos, genus) and rhynia.f.kill_if_health(pos, 1)
+    local switch_s = not rhynia.f.is_live(pos)
+    local wire_s = switch_s and rhynia.f.on_wither(pos, genus)
+    local wire_s2 = wire_s and rhynia.f.kill_if_health(pos, 1)
+    return not wire_s2 -- to return true if plant is living and false if plant is dead
 end
 
 rhynia.f.spot_check = function(pos, name, tf) -- Searches for node [name] 1 node around pos, returns integer of # found. If BOOL "tf" is true, returns table of all values of group "name". (some kind of "verbose" search)
