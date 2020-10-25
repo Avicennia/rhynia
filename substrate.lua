@@ -34,7 +34,7 @@ rhynia.f.geo_area = function(p,r,t) -- uses vector p and radius r to determine a
     return a
 end
 
-rhynia.f.ass_check = function(pos, r, t, genus) -- WIP: Unnecessary internal function definition, logic should also be simplifiable, rewrite soon. ~~
+rhynia.f.assess_check = function(pos, r, t, genus) -- WIP: Unnecessary internal function definition, logic should also be simplifiable, rewrite soon. ~~
     -- Grabs soil data underneath pos, to a max radius of r, depending on the shape specifier t(bool)
     local upos = {x = pos.x, y = pos.y - (t and (r+1) or 1), z = pos.z}
     local cals = rhynia.f.geo_area(upos,r,t)

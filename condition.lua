@@ -7,7 +7,7 @@ rhynia.f.condition_tick = function(pos, genus, tf)
     local catch = m:get_int("rhynia_gl")
     local matl = rhynia.genera[genus].structure and #rhynia.genera[genus].structure
     catch = catch and catch <= math.ceil(matl/root_dim) and "base" or "ext"
-    local v = rhynia.f.ass_check(pos, rhynia.genera[genus].catchments[catch],_, tf and genus)
+    local v = rhynia.f.assess_check(pos, rhynia.genera[genus].catchments[catch],_, tf and genus)
     v = v + mci
     m:set_int("rhynia_ci", v)
     return v
