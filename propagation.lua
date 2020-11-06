@@ -33,5 +33,10 @@ rhynia.f.propagate = function(pos, genus, dir, mag)
             minetest.set_node({x = pos2.x, y = pos2.y + 1, z = pos2.z}, {name = rhynia.genera[genus].structure[1][1] or rhynia.genera[genus].structure[1]})
     end
     sow(toground(proj(pos)))
-    rhynia.f.on_propagate(pos,genus)
+end
+
+rhynia.f.attempt_propagate = function(pos,interval,point,tex,frames)
+    rhynia.f.pollen(pos,_,_,tex or "leiodora_spore.png",frames or 5)
+    local num = math.random(interval or 1000)
+    return num > (point or 998) and rhynia.f.propagate(pos)
 end

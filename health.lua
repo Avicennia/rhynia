@@ -29,7 +29,7 @@ end
 
 rhynia.f.check_vitals = function(pos, genus)
     local switch_s = not rhynia.f.is_live(pos)
-    local wire_s = switch_s and rhynia.f.on_wither(pos, genus)
+    local wire_s = switch_s and not rhynia.f.meta_fix(pos) and rhynia.f.on_wither(pos, genus)
     local wire_s2 = wire_s and rhynia.f.kill_if_health(pos, 1)
     return not wire_s2 -- to return true if plant is living and false if plant is dead
 end
@@ -50,3 +50,12 @@ rhynia.f.spot_check = function(pos, name, tf) -- Searches for node [name] 1 node
     return tags_on_erryting() or #area
 end
 
+rhynia.f.meta_fix = function(pos, gl,ci,h)
+    local m = minetest.get_meta(pos)
+    if(m:get_int("rhynia_gl") <= 0)then
+    m:set_int("rhynia_gl",gl or 1)
+    m:set_int("rhynia_ci",ci or 1)
+    m:set_int("rhynia_h",h or 10)
+    return true
+    end
+end
